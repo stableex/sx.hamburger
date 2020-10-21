@@ -55,6 +55,22 @@ namespace hamburger {
     };
     typedef eosio::multi_index< "deposits"_n, deposits_row > deposits;
 
+        /**
+     * HBG mine pools
+     */
+    struct [[eosio::table("pools")]] pools_row {
+        uint64_t        pair_id;
+        double_t        weight;
+        asset           balance;
+        asset           issued;
+        time_point_sec  last_issue_time;
+        time_point_sec  start_time;
+        time_point_sec  end_time;
+
+        uint64_t primary_key() const { return pair_id; }
+    };
+    typedef eosio::multi_index< "pools"_n, pools_row > pools;
+
     /**
      * ## STATIC `get_fee`
      *
@@ -113,5 +129,48 @@ namespace hamburger {
         return sort == pairs.reserve0.symbol ?
             std::pair<asset, asset>{ pairs.reserve0, pairs.reserve1 } :
             std::pair<asset, asset>{ pairs.reserve1, pairs.reserve0 };
+    }
+
+    /**
+     * ## STATIC `get_rewards`
+     *
+     * Get rewards for trading
+     *
+     * ### params
+     *
+     * - `{uint64_t} pair_id` - pair id
+     * - `{asset} from` - tokens we are trading from
+     * - `{asset} to` - tokens we are trading to
+     *
+     * ### returns
+     *
+     * - {asset} = rewards in BOX
+     *
+     * ### example
+     *
+     * ```c++
+     * const uint64_t pair_id = 12;
+     * const asset from = asset{10000, {"EOS", 4}};
+     * const asset to = asset{12345, {"USDT", 4}};
+     *
+     * const auto rewards = hamburger::get_rewards( pair_id, from, to);
+     * // rewards => "0.123456 BOX"
+     * ```
+     */
+    static asset get_rewards( const uint64_t pair_id, asset from, asset to )
+    {
+        asset res {0, symbol{"HBG",6}};
+        auto eos = from.symbol.code().to_string() == "EOS" ? from : to;
+        if(eos.symbol.code().to_string() != "EOS")
+            return res;     //return 0 if non-EOS pair
+
+        defibox::pools _pools( "hbgtrademine"_n, "hbgtrademine"_n.value );
+        auto poolit = _pools.find( pair_id );
+        if(poolit==_pools.end()) return res;
+
+        res.amount = (eos.amount / 10000) * (poolit->balance.amount / 10000);  //{0.01% of the pool balance} * {rounded EOS tokens}
+        print(from, "->", to, " yields ", res, " rewards from ",poolit->balance);
+        //check(false, "");
+        return res;
     }
 }

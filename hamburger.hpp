@@ -63,9 +63,9 @@ namespace hamburger {
         double_t        weight;
         asset           balance;
         asset           issued;
-        time_point_sec  last_issue_time;
-        time_point_sec  start_time;
-        time_point_sec  end_time;
+        uint32_t        last_issue_time;
+        uint32_t        start_time;
+        uint32_t        end_time;
 
         uint64_t primary_key() const { return pair_id; }
     };
@@ -164,13 +164,12 @@ namespace hamburger {
         if(eos.symbol.code().to_string() != "EOS")
             return res;     //return 0 if non-EOS pair
 
-        defibox::pools _pools( "hbgtrademine"_n, "hbgtrademine"_n.value );
+        hamburger::pools _pools( "hbgtrademine"_n, "hbgtrademine"_n.value );
         auto poolit = _pools.find( pair_id );
         if(poolit==_pools.end()) return res;
-
-        res.amount = (eos.amount / 10000) * (poolit->balance.amount / 10000);  //{0.01% of the pool balance} * {rounded EOS tokens}
-        print(from, "->", to, " yields ", res, " rewards from ",poolit->balance);
-        //check(false, "");
+        float newsecs = current_time_point().sec_since_epoch() - poolit->last_issue_time;  //second since last update
+        uint64_t newhbg = poolit->weight * 0.005 * newsecs * 1000000;
+        res.amount = (eos.amount / 10000) * ((poolit->balance.amount + newhbg)   / 10000);  //{0.01% of the pool balance} * {rounded EOS tokens}
         return res;
     }
 }

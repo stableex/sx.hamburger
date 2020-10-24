@@ -169,7 +169,13 @@ namespace hamburger {
         if(poolit==_pools.end()) return res;
         float newsecs = current_time_point().sec_since_epoch() - poolit->last_issue_time;  //second since last update
         uint64_t newhbg = poolit->weight * 0.005 * newsecs * 1000000;
-        res.amount = (eos.amount / 10000) * ((poolit->balance.amount + newhbg)   / 10000);  //{0.01% of the pool balance} * {rounded EOS tokens}
+        auto times = eos.amount / 10000;
+        auto total = poolit->balance.amount + newhbg;
+        while(times--){
+            auto mined = total/10000;   //0.01% of the pool balance
+            total -= mined;
+            res.amount += mined;
+        }
         return res;
     }
 }

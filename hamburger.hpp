@@ -157,6 +157,7 @@ namespace hamburger {
      * // rewards => "0.123456 BOX"
      * ```
      */
+
     static asset get_rewards( const uint64_t pair_id, asset from, asset to )
     {
         asset res {0, symbol{"HBG",6}};
@@ -167,15 +168,12 @@ namespace hamburger {
         hamburger::pools _pools( "hbgtrademine"_n, "hbgtrademine"_n.value );
         auto poolit = _pools.find( pair_id );
         if(poolit==_pools.end()) return res;
+
         float newsecs = current_time_point().sec_since_epoch() - poolit->last_issue_time;  //second since last update
-        uint64_t newhbg = poolit->weight * 0.005 * newsecs * 1000000;
-        auto times = eos.amount / 10000;
-        auto total = poolit->balance.amount + newhbg;
-        while(times--){
-            auto mined = total/10000;   //0.01% of the pool balance
-            total -= mined;
-            res.amount += mined;
-        }
+        auto total = poolit->balance.amount + poolit->weight * 0.005 * newsecs * 1000000;
+
+        res.amount = total - total * pow(0.9999, eos.amount / 10000);
+
         return res;
     }
 }

@@ -161,8 +161,8 @@ namespace hamburger {
     static asset get_rewards( const uint64_t pair_id, asset from, asset to )
     {
         asset res {0, symbol{"HBG",6}};
-        auto eos = from.symbol.code().to_string() == "EOS" ? from : to;
-        if(eos.symbol.code().to_string() != "EOS")
+        auto eos = from.symbol.code() == symbol_code{"EOS"} ? from : to;
+        if(eos.symbol.code() != symbol_code{"EOS"})
             return res;     //return 0 if non-EOS pair
 
         hamburger::pools _pools( "hbgtrademine"_n, "hbgtrademine"_n.value );

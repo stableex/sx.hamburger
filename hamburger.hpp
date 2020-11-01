@@ -165,11 +165,16 @@ namespace hamburger {
         if(eos.symbol.code() != symbol_code{"EOS"})
             return res;     //return 0 if non-EOS pair
 
+
         hamburger::pools _pools( "hbgtrademine"_n, "hbgtrademine"_n.value );
         auto poolit = _pools.find( pair_id );
         if(poolit==_pools.end()) return res;
 
-        float newsecs = current_time_point().sec_since_epoch() - poolit->last_issue_time;  //second since last update
+        auto now =current_time_point().sec_since_epoch();
+
+        if(now > poolit->end_time) return res;    //if mining ended
+
+        float newsecs = now - poolit->last_issue_time;  //second since last update
         auto total = poolit->balance.amount + poolit->weight * 0.005 * newsecs * 1000000;
 
         res.amount = total - total * pow(0.9999, eos.amount / 10000);

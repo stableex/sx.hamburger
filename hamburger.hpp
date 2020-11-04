@@ -158,11 +158,11 @@ namespace hamburger {
      * ```
      */
 
-    static asset get_rewards( const uint64_t pair_id, asset from, asset to )
+    static asset get_rewards( const uint64_t pair_id, asset in, asset out )
     {
         asset res {0, symbol{"HBG",6}};
-        auto eos = from.symbol.code() == symbol_code{"EOS"} ? from : to;
-        if(eos.symbol.code() != symbol_code{"EOS"})
+        if(in.symbol != symbol{"EOS",4}) std::swap(in, out);
+        if(in.symbol != symbol{"EOS",4})
             return res;     //return 0 if non-EOS pair
 
 
@@ -170,14 +170,14 @@ namespace hamburger {
         auto poolit = _pools.find( pair_id );
         if(poolit==_pools.end()) return res;
 
-        auto now =current_time_point().sec_since_epoch();
+        auto now = current_time_point().sec_since_epoch();
 
         if(now > poolit->end_time) return res;    //if mining ended
 
         float newsecs = now - poolit->last_issue_time;  //second since last update
         auto total = poolit->balance.amount + poolit->weight * 0.005 * newsecs * 1000000;
 
-        res.amount = total - total * pow(0.9999, eos.amount / 10000);
+        res.amount = total - total * pow(0.9999, in.amount / 10000);
 
         return res;
     }

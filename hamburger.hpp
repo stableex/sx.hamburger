@@ -14,6 +14,10 @@ namespace hamburger {
     using eosio::multi_index;
     using eosio::time_point_sec;
 
+    const name id = "hamburger"_n;
+    const name code = "hamburgerswp"_n;
+    const string description = "Hamburger Converter";
+
     /**
      * Hamburger pairs
      */
@@ -89,6 +93,7 @@ namespace hamburger {
      */
     static uint8_t get_fee()
     {
+        //return 30;
         hamburger::global _global( "hamburgerswp"_n, "hamburgerswp"_n.value );
         hamburger::global_row global = _global.get_or_default();
         return global.trade_fee + global.protocol_fee;

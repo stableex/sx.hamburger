@@ -10,13 +10,12 @@ namespace hamburger {
     using eosio::symbol;
     using eosio::symbol_code;
     using eosio::name;
-    using eosio::singleton;
     using eosio::multi_index;
     using eosio::time_point_sec;
 
     const name id = "hamburger"_n;
     const name code = "hamburgerswp"_n;
-    const string description = "Hamburger Converter";
+    const std::string description = "Hamburger Converter";
 
     /**
      * Hamburger pairs
@@ -175,7 +174,7 @@ namespace hamburger {
         auto poolit = _pools.find( pair_id );
         if(poolit==_pools.end()) return res;
 
-        auto now = current_time_point().sec_since_epoch();
+        auto now = eosio::current_time_point().sec_since_epoch();
 
         if(now > poolit->end_time) return res;    //if mining ended
 
